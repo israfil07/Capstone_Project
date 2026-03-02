@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    .reports-container {
+        max-width: 800px;
+        margin: 40px auto;
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .reports-title {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 28px;
+        color: #2c3e50;
+    }
+
+    .submit-btn {
+        display: inline-block;
+        margin-bottom: 20px;
+        padding: 10px 18px;
+        background: #4e73df;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: bold;
+        transition: 0.3s ease;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    }
+
+    .report-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .report-item {
+        background: #f8f9fc;
+        margin-bottom: 12px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: 0.3s;
+    }
+
+    .report-item:hover {
+        background: #e2e6f5;
+        transform: translateX(5px);
+    }
+
+    .report-title {
+        font-weight: 600;
+        color: #34495e;
+    }
+
+    .report-date {
+        font-size: 14px;
+        color: #7f8c8d;
+    }
+
+    .empty-message {
+        text-align: center;
+        color: #888;
+        padding: 20px;
+        background: #f2f2f2;
+        border-radius: 8px;
+    }
+</style>
+
+<div class="reports-container">
+    <h2 class="reports-title">Your Reports</h2>
+
+    <a href="{% url 'submit_report' %}" class="submit-btn">
+        + Submit a New Report
+    </a>
+
+    <ul class="report-list">
+        {% for report in reports %}
+            <li class="report-item">
+                <span class="report-title">{{ report.title }}</span>
+                <span class="report-date">{{ report.created_at }}</span>
+            </li>
+        {% empty %}
+            <div class="empty-message">
+                No reports yet.
+            </div>
+        {% endfor %}
+    </ul>
+</div>
+
+{% endblock %}
