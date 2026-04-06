@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+{% endblock %}
+
+{% block content %}
+<section class="mx-auto w-full max-w-2xl">
+
+    <!-- ── Hero banner ── -->
+    <div class="rp-hero rounded-[2rem] p-7 sm:p-10" data-reveal>
+        <div class="flex items-start gap-5">
+            <div class="rp-submit-hero-icon flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10 9 9 9 8 9"/>
+                </svg>
+            </div>
+            <div class="min-w-0">
+                <p class="rp-page-kicker">Issue Intake</p>
+                <h2 class="mt-1 text-3xl font-bold text-white sm:text-4xl tracking-tight">{{ form_title|default:"Submit a Report" }}</h2>
+                <p class="mt-2 text-sm leading-6 text-white/75">Fill in the 3 sections below — details, evidence and map pin — so responders can act immediately.</p>
+            </div>
+        </div>
+        <!-- Step pills -->
+        <div class="mt-6 flex items-center gap-2">
+            <div class="rp-submit-step">
+                <span class="rp-submit-step-num">1</span>
+                Details
+            </div>
+            <div class="rp-submit-step-line"></div>
+            <div class="rp-submit-step">
+                <span class="rp-submit-step-num">2</span>
+                Evidence
+            </div>
+            <div class="rp-submit-step-line"></div>
+            <div class="rp-submit-step">
+                <span class="rp-submit-step-num">3</span>
+                Location
+            </div>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="mt-5 space-y-5" data-no-loading>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700" role="alert" aria-live="assertive">
+        <svg class="mt-0.5 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div>{{ form.non_field_errors }}</div>
+    </div>
+    {% endif %}
+
+    <input type="hidden" name="latitude" id="id_latitude" value="{{ form.latitude.value|default_if_none:'' }}">
+    <input type="hidden" name="longitude" id="id_longitude" value="{{ form.longitude.value|default_if_none:'' }}">
+
+    <!-- ── Card 1 · Report Details ── -->
+    <div class="glass-card rp-submit-card rounded-[2rem] p-7 sm:p-9" data-reveal>
+        <div class="rp-submit-section-header">
+            <div class="rp-submit-section-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <div>
+                <p class="rp-submit-card-step">Step 1 of 3</p>
+                <h3 class="rp-submit-card-title">Report Details</h3>
+            </div>
+        </div>
+
+        <!-- Title -->
+        <div class="rp-submit-field">
+            <label for="id_title" class="rp-submit-field-label">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                {{ form.title.label }}
+            </label>
+            <input
+                type="text"
+                name="title"
+                id="id_title"
+                value="{{ form.title.value|default_if_none:'' }}"
+                placeholder="e.g. Broken streetlight on Main Street"
+                class="rp-submit-input w-full px-4 py-3 text-sm"
+                {% if form.title.field.required %}required{% endif %}
+            >
+            {% if form.title.errors %}
+                <p class="rp-field-error" data-field-error-for="id_title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    {{ form.title.errors|striptags }}
+                </p>
+            {% endif %}
+        </div>
+
+        <!-- Description -->
+        <div class="rp-submit-field">
+            <label for="id_description" class="rp-submit-field-label">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="7" y2="18"/></svg>
+                {{ form.description.label }}
+            </label>
+            <textarea
+                name="description"
+                id="id_description"
+                rows="4"
+                placeholder="Describe the issue clearly — what happened, severity, how long it has been a problem…"
+                class="rp-submit-input w-full px-4 py-3 text-sm"
+            >{{ form.description.value|default_if_none:'' }}</textarea>
+            {% if form.description.errors %}
+                <p class="rp-field-error" data-field-error-for="id_description">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    {{ form.description.errors|striptags }}
+                </p>
+            {% endif %}
+        </div>
+
+        <!-- Category -->
+        <div class="grid gap-3 sm:gap-5 sm:grid-cols-1">
+            <div class="rp-submit-field">
+                <label for="id_category" class="rp-submit-field-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    {{ form.category.label }}
+                </label>
+                {% with current_category=form.category.value|default_if_none:'other' %}
+                <select name="category" id="id_category" class="rp-submit-input w-full px-4 py-3 text-sm" {% if form.category.field.required %}required{% endif %}>
+                    {% for value, label in form.category.field.choices %}
+                        <option value="{{ value }}"{% if current_category == value %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% endwith %}
+                {% if form.category.errors %}
+                    <p class="rp-field-error" data-field-error-for="id_category">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        {{ form.category.errors|striptags }}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Location text -->
+        <div class="rp-submit-field">
+            <label for="id_location" class="rp-submit-field-label">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                {{ form.location.label }}
+            </label>
+            <input
+                type="text"
+                name="location"
+                id="id_location"
+                value="{{ form.location.value|default_if_none:'' }}"
+                placeholder="Neighbourhood, street or landmark"
+                class="rp-submit-input w-full px-4 py-3 text-sm"
+                {% if form.location.field.required %}required{% endif %}
+            >
+            {% if form.location.errors %}
+                <p class="rp-field-error" data-field-error-for="id_location">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    {{ form.location.errors|striptags }}
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── Card 2 · Evidence ── -->
+    <div class="glass-card rp-submit-card rounded-[2rem] p-7 sm:p-9" data-reveal>
+        <div class="rp-submit-section-header">
+            <div class="rp-submit-section-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <div>
+                <p class="rp-submit-card-step">Step 2 of 3</p>
+                <h3 class="rp-submit-card-title">Evidence &amp; Media</h3>
+            </div>
+        </div>
+
+        <!-- Image upload zone -->
+        <div class="rp-submit-field">
+            <p class="rp-submit-field-label">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                {{ form.image.label }}
+            </p>
+            <label for="id_image" class="rp-file-zone" id="image-drop-zone">
+                <div id="image-zone-idle">
+                    <svg class="rp-file-zone-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <p class="mt-1 text-sm font-semibold text-slate-700">Click or drag a photo here</p>
+                    <p class="text-xs text-slate-500">JPG, PNG, WEBP — max 5 MB</p>
+                </div>
+                <input type="file" name="image" id="id_image" accept="image/*">
+            </label>
+            {% if form.instance.image %}
+            <label class="mt-2 inline-flex cursor-pointer items-center gap-2 text-xs text-slate-600">
+                <input type="checkbox" name="image-clear" class="h-3.5 w-3.5"> Remove current image
+            </label>
+            {% endif %}
+            {% if form.image.errors %}
+                <p class="rp-field-error" data-field-error-for="id_image">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    {{ form.image.errors|striptags }}
+                </p>
+            {% endif %}
+
+            <!-- Image preview -->
+            <div id="image-preview-wrapper" class="{% if not form.instance.image %}hidden {% endif %}rp-media-preview mt-3">
+                <img id="image-preview" class="max-h-64 w-full rounded-2xl object-cover" alt="Image preview" {% if form.instance.image %}src="{{ form.instance.image.url }}"{% endif %}>
+                <button type="button" id="image-preview-clear" class="rp-media-preview-clear">✕ Remove</button>
+            </div>
+        </div>
+
+        <!-- Video upload zone -->
+        <div class="rp-submit-field">
+            <p class="rp-submit-field-label">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                {{ form.video.label }} <span class="ml-1 font-normal normal-case text-slate-400">(optional)</span>
+            </p>
+            <label for="id_video" class="rp-file-zone" id="video-drop-zone">
+                <div id="video-zone-idle">
+                    <svg class="rp-file-zone-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                    <p class="mt-1 text-sm font-semibold text-slate-700">Click or drag a video here</p>
+                    <p class="text-xs text-slate-500">MP4, MOV, WEBM — max 10 MB</p>
+                </div>
+                <input type="file" name="video" id="id_video" accept="video/*">
+            </label>
+            {% if form.instance.video %}
+            <label class="mt-2 inline-flex cursor-pointer items-center gap-2 text-xs text-slate-600">
+                <input type="checkbox" name="video-clear" class="h-3.5 w-3.5"> Remove current video
+            </label>
+            {% endif %}
+            {% if form.video.errors %}
+                <p class="rp-field-error" data-field-error-for="id_video">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    {{ form.video.errors|striptags }}
+                </p>
+            {% endif %}
+
+            <!-- Video preview -->
+            <div id="video-preview-wrapper" class="{% if not form.instance.video %}hidden {% endif %}rp-media-preview mt-3">
+                <video id="video-preview" controls class="max-h-64 w-full rounded-2xl bg-black">
+                    {% if form.instance.video %}<source src="{{ form.instance.video.url }}">{% endif %}
+                </video>
+                <button type="button" id="video-preview-clear" class="rp-media-preview-clear">✕ Remove</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Card 3 · Location Pin ── -->
+    <div class="glass-card rp-submit-card rounded-[2rem] p-7 sm:p-9" data-reveal>
+        <div class="rp-submit-section-header">
+            <div class="rp-submit-section-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div>
+                <p class="rp-submit-card-step">Step 3 of 3</p>
+                <h3 class="rp-submit-card-title">Pin Exact Location</h3>
+            </div>
+        </div>
+
+        <div class="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto]">
+            <input
+                id="map-search-query"
+                type="text"
+                placeholder="Search street, area or landmark…"
+                class="rp-submit-input w-full px-4 py-3 text-sm"
+            >
+            <button id="map-search-button" type="button" class="rp-map-action-btn w-full sm:w-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Search
+            </button>
+            <button id="map-current-location" type="button" class="rp-map-action-btn w-full sm:w-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+                My Location
+            </button>
+        </div>
+
+        <div class="relative">
+            <div id="report-location-map" class="h-64 w-full overflow-hidden rounded-2xl border border-slate-200 shadow-inner sm:h-80" data-report-location-map data-default-lat="23.685" data-default-lng="90.3563" data-default-zoom="7" data-selected-zoom="14"></div>
+            <div data-map-status role="status" aria-live="polite" class="absolute inset-x-0 top-3 flex justify-center rp-map-status"></div>
+        </div>
+
+        <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center gap-2">
+                <span class="rp-map-pin-dot" id="map-pin-indicator"></span>
+                <p id="map-coordinates" class="text-xs font-medium text-slate-500" aria-live="polite">No pin selected yet</p>
+            </div>
+            <button id="map-clear-pin" type="button" class="rp-map-clear-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Clear Pin
+            </button>
+        </div>
+        <p id="map-feedback" class="mt-2 text-xs text-slate-400" aria-live="polite">Click the map, search an address, or use your device location to place a pin.</p>
+    </div>
+
+    <!-- ── Submit call-to-action ── -->
+    <button type="submit" class="rp-submit-cta-btn" data-reveal>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        {{ submit_label|default:"Submit Report" }}
+    </button>
+
+    </form>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="{% static 'js/reports-pages.js' %}?v=20260403b"></script>
+<script>
+(function () {
+    // Image zone preview
+    var imgInput = document.getElementById('id_image');
+    var imgWrap  = document.getElementById('image-preview-wrapper');
+    var imgEl    = document.getElementById('image-preview');
+    var imgClear = document.getElementById('image-preview-clear');
+    if (imgInput) {
+        imgInput.addEventListener('change', function () {
+            if (imgInput.files && imgInput.files[0]) {
+                var fr = new FileReader();
+                fr.onload = function (e) {
+                    imgEl.src = e.target.result;
+                    imgWrap.classList.remove('hidden');
+                };
+                fr.readAsDataURL(imgInput.files[0]);
+            }
+        });
+    }
+    if (imgClear) {
+        imgClear.addEventListener('click', function () {
+            imgInput.value = '';
+            imgWrap.classList.add('hidden');
+        });
+    }
+
+    // Video zone preview
+    var vidInput = document.getElementById('id_video');
+    var vidWrap  = document.getElementById('video-preview-wrapper');
+    var vidEl    = document.getElementById('video-preview');
+    var vidClear = document.getElementById('video-preview-clear');
+    if (vidInput) {
+        vidInput.addEventListener('change', function () {
+            if (vidInput.files && vidInput.files[0]) {
+                var url = URL.createObjectURL(vidInput.files[0]);
+                vidEl.src = url;
+                vidWrap.classList.remove('hidden');
+            }
+        });
+    }
+    if (vidClear) {
+        vidClear.addEventListener('click', function () {
+            vidInput.value = '';
+            vidEl.src = '';
+            vidWrap.classList.add('hidden');
+        });
+    }
+
+    // Drag-over highlight
+    ['image-drop-zone', 'video-drop-zone'].forEach(function (id) {
+        var zone = document.getElementById(id);
+        if (!zone) return;
+        zone.addEventListener('dragover', function (e) { e.preventDefault(); zone.classList.add('is-dragging'); });
+        zone.addEventListener('dragleave', function () { zone.classList.remove('is-dragging'); });
+        zone.addEventListener('drop', function () { zone.classList.remove('is-dragging'); });
+    });
+
+    // Map pin dot colour
+    var coordEl = document.getElementById('map-coordinates');
+    var pinDot  = document.getElementById('map-pin-indicator');
+    if (coordEl && pinDot) {
+        var obs = new MutationObserver(function () {
+            var hasPin = coordEl.textContent.indexOf('No pin') === -1 && coordEl.textContent.trim() !== '';
+            pinDot.classList.toggle('is-active', hasPin);
+        });
+        obs.observe(coordEl, { childList: true, characterData: true, subtree: true });
+    }
+}());
+</script>
+{% endblock %}
