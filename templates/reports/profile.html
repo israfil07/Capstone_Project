@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="rp-profile-shell mx-auto max-w-6xl space-y-6">
+    <div class="rp-profile-hero rounded-2xl border border-slate-200 p-5 shadow-sm sm:p-6">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Personal Workspace</p>
+                <h2 class="mt-1 text-3xl font-bold text-slate-800">Profile</h2>
+                <p class="mt-2 max-w-2xl text-sm text-slate-600">Manage your photo, track your activity, and quickly jump back into your latest reports.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'my_reports' %}" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">My Reports</a>
+                <a href="{% url 'submit_report' %}" class="inline-flex items-center justify-center rounded-xl border border-slate-900 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800">Submit New Report</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid gap-6 lg:grid-cols-5">
+        <div id="rp-profile-photo-root" class="lg:col-span-2">
+            <div class="rp-profile-photo rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500 shadow-sm">Loading profile photo panel...</div>
+        </div>
+
+        <div id="rp-profile-recent-root" class="lg:col-span-3">
+            <div class="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500 shadow-sm">Loading recent reports...</div>
+        </div>
+    </div>
+
+    <div id="rp-profile-account-root">
+        <div class="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-500 shadow-sm">Loading account information...</div>
+    </div>
+
+    {{ react_initial|json_script:"profile-react-initial" }}
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" src="{% static 'js/react-profile.js' %}?v=20260405a"></script>
+{% endblock %}

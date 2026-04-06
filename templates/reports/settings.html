@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="mx-auto max-w-4xl space-y-6">
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Settings</p>
+        <h2 class="mt-2 text-3xl font-bold text-slate-800">Settings</h2>
+        <p class="mt-2 text-sm text-slate-600">Network preferences are managed here. For account and photo updates, open Update Profile.</p>
+        <div class="mt-4">
+            <a href="{% url 'profile' %}" class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Go to Update Profile</a>
+        </div>
+    </div>
+
+    <div id="network-preferences" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="mb-4">
+            <h3 class="text-xl font-semibold text-slate-800">Network Preferences</h3>
+            <p class="mt-1 text-sm text-slate-600">Control how updates are delivered and how often unread counts are refreshed.</p>
+        </div>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+
+            <label class="flex items-center gap-3 rounded-lg border border-slate-200 px-4 py-3">
+                <input type="checkbox" name="browser_notifications" {% if notification_form.browser_notifications.value %}checked{% endif %} class="h-4 w-4">
+                <span class="text-sm text-slate-700">Enable browser notification prompts</span>
+            </label>
+
+            <label class="flex items-center gap-3 rounded-lg border border-slate-200 px-4 py-3">
+                <input type="checkbox" name="email_notifications" {% if notification_form.email_notifications.value %}checked{% endif %} class="h-4 w-4">
+                <span class="text-sm text-slate-700">Enable email notifications</span>
+            </label>
+
+            <label class="flex items-center gap-3 rounded-lg border border-slate-200 px-4 py-3">
+                <input type="checkbox" name="weekly_digest" {% if notification_form.weekly_digest.value %}checked{% endif %} class="h-4 w-4">
+                <span class="text-sm text-slate-700">Send weekly digest summary</span>
+            </label>
+
+            <div>
+                <label for="id_unread_polling_seconds" class="block text-sm font-medium text-slate-700">Unread polling frequency</label>
+                <select id="id_unread_polling_seconds" name="unread_polling_seconds" class="mt-1 w-full px-3 py-2 text-sm">
+                    {% for value, label in notification_form.unread_polling_seconds.field.choices %}
+                        <option value="{{ value }}" {% if notification_form.unread_polling_seconds.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Save Network Preferences</button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

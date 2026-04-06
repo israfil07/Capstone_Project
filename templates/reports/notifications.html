@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="rp-notifications-shell mx-auto max-w-5xl">
+    <div
+        id="rp-notifications-root"
+        data-api-url="{% url 'notifications_list_api' %}"
+        data-report-detail-template="{% url 'report_detail' 0 %}"
+    ></div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" src="{% static 'js/react-notifications.js' %}"></script>
+{% endblock %}
