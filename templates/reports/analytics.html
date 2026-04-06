@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+<section class="rp-analytics-shell space-y-6">
+    <div id="rp-analytics-root" data-api-url="{% url 'analytics_api' %}"></div>
+
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-[0.95fr_1.35fr]" data-stagger-parent>
+        <div class="rounded-[1.8rem] border border-slate-200 p-5 shadow" data-chart-panel data-stagger-item data-chart-card="status">
+            <h3 class="text-base font-bold text-slate-800">Progress Mix</h3>
+            <p class="mb-3 text-xs text-slate-500">Submitted, in review, in progress, resolved</p>
+            <div class="h-72">
+                <canvas id="statusChart"></canvas>
+                <div class="rp-chart-state" data-chart-state role="status" aria-live="polite">Rendering chart...</div>
+            </div>
+        </div>
+        <div class="rounded-[1.8rem] border border-slate-200 p-5 shadow" data-chart-panel data-stagger-item data-chart-card="trend" >
+            <h3 id="trend-chart-heading" class="text-base font-bold text-slate-800">{{ trend_heading }}</h3>
+            <p class="mb-3 text-xs text-slate-500">Submission pattern over selected range</p>
+            <div class="h-72">
+                <canvas id="trendChart"></canvas>
+                <div class="rp-chart-state" data-chart-state role="status" aria-live="polite">Rendering chart...</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{{ status_labels|json_script:"status-labels-data" }}
+{{ status_values|json_script:"status-values-data" }}
+{{ trend_labels|json_script:"trend-labels-data" }}
+{{ trend_values|json_script:"trend-values-data" }}
+{{ react_initial|json_script:"analytics-react-initial" }}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/reports-pages.js' %}?v=20260403b"></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" src="{% static 'js/react-analytics.js' %}"></script>
+{% endblock %}
+{% endblock %}
