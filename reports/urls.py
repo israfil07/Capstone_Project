@@ -1,0 +1,36 @@
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path("", views.home, name="dashboard_home"),
+    path("api/reports/", views.dashboard_reports_api, name="dashboard_reports_api"),
+    path("home/", views.home, name="home"),
+    path("home/export/", views.export_reports_csv, name="export_reports_csv"),
+    path("profile/", views.profile, name="profile"),
+    path("my-reports/", views.my_reports, name="my_reports"),
+    path("analytics/", views.analytics_dashboard, name="analytics_dashboard"),
+    path("notifications/", views.notifications, name="notifications"),
+    path("notifications/unread-count/", views.unread_notifications_api, name="unread_notifications_api"),
+    path("notifications/list-api/", views.notifications_list_api, name="notifications_list_api"),
+    path("notifications/mark-read/", views.mark_notifications_read, name="mark_notifications_read"),
+    path("analytics/api/", views.analytics_api, name="analytics_api"),
+    path("community-fund/", views.community_fund, name="community_fund"),
+    path("settings/", views.account_settings, name="settings"),
+    path("submit/", views.submit_report, name="submit_report"),
+    path("report/<int:pk>/", views.report_detail, name="report_detail"),
+    path("report/<int:pk>/edit/", views.report_update, name="report_update"),
+    path("report/<int:pk>/delete/", views.report_delete, name="report_delete"),
+    path("report/<int:pk>/bookmark/", views.toggle_bookmark, name="toggle_bookmark"),
+    path("report/<int:pk>/follow/", views.toggle_follow, name="toggle_follow"),
+    path("report/<int:pk>/react/", views.toggle_report_reaction, name="toggle_report_reaction"),
+    path("report/<int:pk>/abuse/", views.report_abuse, name="report_abuse"),
+    path("comment/<int:pk>/edit/", views.comment_edit, name="comment_edit"),
+    path("comment/<int:pk>/delete/", views.comment_delete, name="comment_delete"),
+    path("comment/<int:pk>/react/", views.toggle_comment_reaction, name="toggle_comment_reaction"),
+    path("comment/<int:pk>/abuse/", views.comment_abuse, name="comment_abuse"),
+    path("moderation/", views.moderation_queue, name="moderation_queue"),
+    path("moderation/report/<int:pk>/", views.moderation_report_action, name="moderation_report_action"),
+    path("moderation/comment/<int:pk>/", views.moderation_comment_action, name="moderation_comment_action"),
+    path("moderation/abuse/<str:abuse_type>/<int:pk>/", views.abuse_status_update, name="abuse_status_update"),
+]

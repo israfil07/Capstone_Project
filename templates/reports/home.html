@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+<section class="rp-home-shell mx-auto max-w-7xl space-y-4 sm:space-y-5">
+    <div id="rp-dashboard-root" data-api-url="{% url 'dashboard_reports_api' %}" data-login-url="{% url 'login' %}"></div>
+</section>
+
+{{ react_initial|json_script:"dashboard-react-initial" }}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" src="{% static 'js/react-dashboard.js' %}?v=20260403t"></script>
+{% endblock %}
+
+{% endblock %}

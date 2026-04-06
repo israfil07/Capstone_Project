@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block extra_head %}
+{% if report.latitude and report.longitude %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<article class="rp-detail-shell mx-auto max-w-5xl rounded-[2rem] p-5 shadow-lg sm:p-7">
+    <div class="rp-hero -m-5 rounded-[1.7rem] p-6 sm:-m-7 sm:rounded-[1.9rem] sm:p-8" data-reveal>
+        <div class="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div class="max-w-3xl">
+                <p class="rp-page-kicker">Report Detail</p>
+                <h2 class="mt-3 text-3xl font-bold text-white sm:text-4xl">{{ report.title }}</h2>
+                <p class="mt-3 text-sm leading-7 text-white/80 sm:text-base">
+                    Submitted {{ report.created_at|date:"M d, Y h:i A" }} by {{ reporter_display_name }}.
+                    Review progress, supporting media, map context, and community discussion in one place.
+                </p>
+                <div class="rp-detail-reporter mt-4 inline-flex items-center gap-3">
+                    {% if report.user.profile_image %}
+                        <img src="{{ report.user.profile_image.url }}" alt="{{ reporter_display_name }}" class="rp-detail-reporter-avatar h-10 w-10 rounded-full object-cover">
+                    {% else %}
+                        <div class="rp-detail-reporter-avatar flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white">
+                            {{ reporter_display_name|slice:":1"|upper }}
+                        </div>
+                    {% endif %}
+                    <div class="min-w-0">
+                        <p class="rp-detail-reporter-name truncate text-sm font-semibold">{{ reporter_display_name }}</p>
+                        <p class="rp-detail-reporter-username truncate text-xs">@{{ report.user.username }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2 lg:max-w-sm lg:justify-end">
+                <span class="rp-detail-chip">{{ report.get_progress_display }}</span>
+                <span class="rp-detail-chip">{{ report.get_category_display }}</span>
+                {% if report.location %}
+                    <span class="rp-detail-chip">{{ report.location }}</span>
+                {% endif %}
+                {% if report.location %}
+                    {% if report.latitude and report.longitude %}
+                        <a class="rp-detail-chip" href="https://www.google.com/maps?q={{ report.latitude }},{{ report.longitude }}" target="_blank">
+                            Open Map
+                        </a>
+                    {% else %}
+                        <a class="rp-detail-chip" href="https://www.google.com/maps/search/{{ report.location|urlencode }}" target="_blank">
+                            Open Map
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if report.latitude and report.longitude %}
+        <section id="report-area-map" class="rp-detail-map-section mt-6 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+            <div class="mb-2 flex items-center justify-between gap-2">
+                <h3 class="text-sm font-semibold text-slate-700">Reported Area</h3>
+                <span class="text-xs font-medium text-slate-500">Lat {{ report.latitude }}, Lng {{ report.longitude }}</span>
+            </div>
+            <div>
+                <div id="report-detail-map" class="h-56 w-full overflow-hidden rounded-[1rem] border border-slate-200 sm:h-72" data-report-detail-map data-lat="{{ report.latitude }}" data-lng="{{ report.longitude }}" data-zoom="14"></div>
+                <div class="rp-map-status" data-map-status role="status" aria-live="polite">Loading map context...</div>
+            </div>
+        </section>
+    {% elif report.location %}
+        <section class="rp-detail-note mt-6 rounded-[1.5rem] p-4 text-sm text-slate-600">
+            <strong>Location noted, map not pinned</strong>
+            This report includes the location “{{ report.location }}”, but no exact coordinates were attached when it was submitted.
+        </section>
+    {% endif %}
+
+    <div class="rp-detail-description mt-6 whitespace-pre-line rounded-[1.5rem] border border-slate-200 bg-white/70 p-5">
+        {% if report.description %}
+            {{ report.description }}
+        {% else %}
+            No description provided.
+        {% endif %}
+    </div>
+
+    <section class="rp-detail-evidence mt-6 space-y-4">
+        <div class="flex items-center justify-between">
+            <h3 class="text-xl font-bold text-slate-800">Evidence</h3>
+            <span class="rp-detail-meta-text">Images and video</span>
+        </div>
+
+        {% if report.image %}
+            <img class="w-full rounded-[1.5rem] bg-slate-100 object-contain" src="{{ report.image.url }}" alt="{{ report.title }}">
+        {% endif %}
+
+        {% if report.video %}
+            <video class="w-full rounded-[1.5rem] bg-black" controls>
+                <source src="{{ report.video.url }}">
+                Your browser does not support the video tag.
+            </video>
+        {% endif %}
+
+        {% if not report.image and not report.video %}
+            <div class="rp-detail-note rounded-[1.5rem] p-4 text-sm text-slate-600">
+                <strong>No supporting media attached</strong>
+                This report currently relies on the written description and activity history without uploaded image or video evidence.
+            </div>
+        {% endif %}
+    </section>
+
+    <div class="mt-6 flex flex-wrap items-center gap-2 sm:gap-3">
+        <form method="post" action="{% url 'toggle_bookmark' report.pk %}" class="w-full sm:w-auto">
+            {% csrf_token %}
+            <button type="submit" class="w-full sm:w-auto">
+                {% if report_bookmarked %}Bookmarked{% else %}Bookmark{% endif %}
+            </button>
+        </form>
+        <form method="post" action="{% url 'toggle_follow' report.pk %}" class="w-full sm:w-auto">
+            {% csrf_token %}
+            <button type="submit" class="w-full sm:w-auto">
+                {% if report_followed %}Following{% else %}Follow{% endif %}
+            </button>
+        </form>
+        <div class="rp-reaction-picker">
+            <form method="post" action="{% url 'toggle_report_reaction' report.pk %}" class="rp-reaction-form m-0" data-reaction-form>
+                {% csrf_token %}
+                <input type="hidden" name="reaction" value="{{ report_reaction_type|default:'like' }}" data-reaction-input>
+                <button type="button" class="rp-reaction-trigger sm:w-auto" aria-haspopup="menu" aria-label="React to report">
+                    {% if report_reaction_type %}{{ report_reaction_emoji }} {{ report_reaction_label }}{% else %}React{% endif %} ({{ report_reaction_count }})
+                </button>
+                <div class="rp-reaction-popover" role="menu" aria-label="Choose reaction">
+                    <button type="button" data-reaction-option="like" title="Like" aria-label="Like">👍</button>
+                    <button type="button" data-reaction-option="love" title="Love" aria-label="Love">❤️</button>
+                    <button type="button" data-reaction-option="angry" title="Angry" aria-label="Angry">😠</button>
+                    <button type="button" data-reaction-option="dislike" title="Dislike" aria-label="Dislike">👎</button>
+                </div>
+            </form>
+        </div>
+        <form method="post" action="{% url 'report_abuse' report.pk %}" class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            {% csrf_token %}
+            <div class="min-w-0 flex-1">
+                <input type="text" name="reason" id="id_report_abuse_reason" value="{{ report_abuse_form.reason.value|default_if_none:'' }}" placeholder="Reason for reporting" class="w-full px-3 py-2 text-sm" required>
+            </div>
+            <button type="submit" class="w-full border border-rose-300 bg-rose-50 text-rose-600 hover:bg-rose-100 sm:w-auto">Report Abuse</button>
+        </form>
+    </div>
+
+    <div class="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
+        <a class="bg-indigo-600 text-white hover:bg-indigo-700 w-full sm:w-auto" href="{% url 'home' %}">Back to Reports</a>
+        {% if is_owner %}
+            <a class="bg-emerald-600 text-white hover:bg-emerald-700 w-full sm:w-auto" href="{% url 'report_update' report.pk %}">Edit</a>
+            <form action="{% url 'report_delete' report.pk %}" method="post" class="m-0 w-full sm:w-auto">
+                {% csrf_token %}
+                <button class="bg-rose-600 text-white hover:bg-rose-700 w-full sm:w-auto" type="submit">Delete</button>
+            </form>
+        {% endif %}
+        {% if can_moderate %}
+            <a class="w-full sm:w-auto" href="{% url 'moderation_queue' %}">Open Moderation</a>
+        {% endif %}
+    </div>
+
+    <section class="rp-detail-timeline mt-8 border-t border-slate-200 pt-6">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xl font-bold text-slate-800">Status Timeline</h3>
+            <span class="rp-detail-meta-text">Progress history</span>
+        </div>
+        <div class="mt-3 space-y-2">
+            {% for item in history %}
+                <div class="rp-timeline-item rounded-[1.3rem] p-3 text-sm">
+                    <p class="font-semibold text-slate-700">{{ item.old_status|default:"New" }} → {{ item.new_status }}</p>
+                    <p class="text-xs text-slate-500">By: {{ item.changed_by.username|default:"System" }} | {{ item.created_at|date:"M d, Y h:i A" }}</p>
+                    {% if item.note %}<p class="mt-1 text-xs text-slate-600">{{ item.note }}</p>{% endif %}
+                </div>
+            {% empty %}
+                <div class="rp-detail-note rounded-[1.3rem] p-4 text-sm text-slate-600">
+                    <strong>No timeline events yet</strong>
+                    This report has not changed status since it was created.
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="rp-detail-comments mt-8 border-t border-slate-200 pt-6">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xl font-bold text-slate-800">Comments</h3>
+            <span class="rp-detail-meta-text">Community discussion</span>
+        </div>
+
+        <form method="post" class="mt-4 space-y-2">
+            {% csrf_token %}
+            <label for="id_text" class="block text-sm font-medium text-slate-700">Add a comment</label>
+            <input type="hidden" name="parent" id="id_parent" value="{{ comment_form.parent.value|default_if_none:'' }}">
+            <textarea name="text" id="id_text" rows="3" placeholder="Write your comment..." class="w-full px-3 py-2 text-sm" {% if comment_form.text.field.required %}required{% endif %}>{{ comment_form.text.value|default_if_none:'' }}</textarea>
+            {% if comment_form.text.errors %}
+                <p class="text-xs text-rose-600" data-field-error-for="id_text">{{ comment_form.text.errors|striptags }}</p>
+            {% endif %}
+            <button type="submit" class="bg-indigo-600 text-white hover:bg-indigo-700 sm:w-auto">
+                Post Comment
+            </button>
+        </form>
+
+        <div class="mt-6 space-y-3">
+            {% for comment in comments %}
+                <article class="rp-comment-card rounded-[1.4rem] p-4">
+                    <div class="flex items-center gap-2">
+                        {% if comment.user.profile_image %}
+                            <img src="{{ comment.user.profile_image.url }}" alt="{{ comment.user.username }}" class="h-8 w-8 rounded-full border border-slate-300 object-cover">
+                        {% else %}
+                            <div class="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold">
+                                {{ comment.user.username|slice:":1"|upper }}
+                            </div>
+                        {% endif %}
+                        <p class="text-sm font-semibold text-slate-800">{{ comment.user.username }}</p>
+                        <span class="text-xs text-slate-500">{{ comment.created_at|date:"M d, Y h:i A" }}</span>
+                    </div>
+                    <p class="mention-text mt-2 whitespace-pre-line text-sm leading-6 text-slate-700">{{ comment.text }}</p>
+
+                    <div class="flex flex-wrap gap-3 mt-3">
+                        <div class="rp-reaction-picker">
+                            <form method="post" action="{% url 'toggle_comment_reaction' comment.pk %}" class="rp-reaction-form m-0" data-reaction-form>
+                                {% csrf_token %}
+                                <input type="hidden" name="reaction" value="{{ comment.user_reaction_type|default:'like' }}" data-reaction-input>
+                                <button type="button" class="sm:w-auto rp-reaction-trigger" aria-haspopup="menu" aria-label="React to comment">
+                                    {% if comment.user_reaction_type %}{{ comment.user_reaction_emoji }} {{ comment.user_reaction_label }}{% else %}React{% endif %} ({{ comment.reaction_count }})
+                                </button>
+                                <div class="rp-reaction-popover" role="menu" aria-label="Choose reaction">
+                                    <button type="button" data-reaction-option="like" title="Like" aria-label="Like">👍</button>
+                                    <button type="button" data-reaction-option="love" title="Love" aria-label="Love">❤️</button>
+                                    <button type="button" data-reaction-option="angry" title="Angry" aria-label="Angry">😠</button>
+                                    <button type="button" data-reaction-option="dislike" title="Dislike" aria-label="Dislike">👎</button>
+                                </div>
+                            </form>
+                        </div>
+                        <button type="button" class="reply-btn sm:w-auto" data-reply-id="{{ comment.id }}">Reply</button>
+                        <form method="post" action="{% url 'comment_abuse' comment.pk %}" class="flex flex-wrap gap-2 items-center">
+                            {% csrf_token %}
+                            <input type="text" name="reason" placeholder="Reason" class="w-28 rounded-md border border-slate-300 px-2 py-2 text-sm">
+                            <button type="submit" class="border border-rose-300 bg-rose-50 text-rose-600 hover:bg-rose-100 sm:w-auto">Report</button>
+                        </form>
+                        {% if comment.user_id == user.id or can_moderate %}
+                            <button type="button" class="edit-comment-btn sm:w-auto" data-url="{% url 'comment_edit' comment.pk %}" data-text="{{ comment.text|escapejs }}">Edit</button>
+                            <form method="post" action="{% url 'comment_delete' comment.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="border border-rose-300 px-3 text-rose-600 hover:bg-rose-50 sm:w-auto">Delete</button>
+                            </form>
+                        {% endif %}
+                    </div>
+
+                    {% if comment.replies.all %}
+                        <div class="rp-reply-list mt-3 space-y-2 border-l border-slate-200 pl-3">
+                            {% for reply in comment.replies.all %}
+                                {% if not reply.is_hidden or can_moderate %}
+                                    <div class="rp-reply-card rounded-[1rem] border border-slate-200 bg-white/80 p-3">
+                                        <p class="text-xs font-semibold text-slate-700">{{ reply.user.username }} · {{ reply.created_at|date:"M d, Y h:i A" }}</p>
+                                        <p class="mention-text mt-1 text-sm text-slate-700">{{ reply.text }}</p>
+                                        <div class="flex flex-wrap gap-3 mt-3">
+                                            <div class="rp-reaction-picker">
+                                                <form method="post" action="{% url 'toggle_comment_reaction' reply.pk %}" class="rp-reaction-form m-0" data-reaction-form>
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="reaction" value="{{ reply.user_reaction_type|default:'like' }}" data-reaction-input>
+                                                    <button type="button" class="sm:w-auto rp-reaction-trigger" aria-haspopup="menu" aria-label="React to reply">
+                                                        {% if reply.user_reaction_type %}{{ reply.user_reaction_emoji }} {{ reply.user_reaction_label }}{% else %}React{% endif %} ({{ reply.reaction_count }})
+                                                    </button>
+                                                    <div class="rp-reaction-popover" role="menu" aria-label="Choose reaction">
+                                                        <button type="button" data-reaction-option="like" title="Like" aria-label="Like">👍</button>
+                                                        <button type="button" data-reaction-option="love" title="Love" aria-label="Love">❤️</button>
+                                                        <button type="button" data-reaction-option="angry" title="Angry" aria-label="Angry">😠</button>
+                                                        <button type="button" data-reaction-option="dislike" title="Dislike" aria-label="Dislike">👎</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                            {% if reply.user_id == user.id or can_moderate %}
+                                                <button type="button" class="edit-comment-btn sm:w-auto" data-url="{% url 'comment_edit' reply.pk %}" data-text="{{ reply.text|escapejs }}">Edit</button>
+                                                <form method="post" action="{% url 'comment_delete' reply.pk %}">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="border border-rose-300 px-3 text-rose-600 hover:bg-rose-50 sm:w-auto">Delete</button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </article>
+            {% empty %}
+                <div class="rp-detail-note rounded-[1.4rem] p-4 text-center text-sm text-slate-500">No comments yet. Be the first to comment.</div>
+            {% endfor %}
+        </div>
+    </section>
+</article>
+
+{% block extra_scripts %}
+{% if report.latitude and report.longitude %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+{% endif %}
+<script src="{% static 'js/reports-pages.js' %}?v=20260403b"></script>
+{% endblock %}
+
+{% endblock %}

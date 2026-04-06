@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="mx-auto max-w-7xl">
+    <div
+        id="rp-moderation-root"
+        data-report-action-url-template="{% url 'moderation_report_action' 0 %}"
+        data-comment-action-url-template="{% url 'moderation_comment_action' 0 %}"
+        data-report-abuse-url-template="{% url 'abuse_status_update' 'report' 0 %}"
+        data-comment-abuse-url-template="{% url 'abuse_status_update' 'comment' 0 %}"
+    >
+        <div class="rounded-[1.8rem] border border-slate-200 bg-white/90 p-8 shadow-sm">
+            <p class="text-sm font-semibold text-slate-700">Loading moderation console...</p>
+            <p class="mt-2 text-sm text-slate-500">Preparing report flags, comment flags, review queue, and hidden comments.</p>
+        </div>
+    </div>
+
+    {{ react_initial|json_script:"moderation-react-initial" }}
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" src="{% static 'js/react-moderation.js' %}?v=20260314a"></script>
+{% endblock %}
